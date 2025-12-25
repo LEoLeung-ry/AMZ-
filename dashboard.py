@@ -6,6 +6,7 @@ import requests
 import io
 import numpy as np  # <--- 这里就是之前缺失的关键一行！
 
+
 # ==========================================
 # 1. 页面配置：全宽模式 + 商务风格
 # ==========================================
@@ -195,4 +196,5 @@ st.dataframe(
     .background_gradient(subset=['Revenue'], cmap='Greens') # 销售额越高越绿
     .background_gradient(subset=['ASP'], cmap='Oranges'),   # 客单价越高越橙
     use_container_width=True
+
 )
