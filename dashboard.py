@@ -32,6 +32,7 @@ st.markdown(
 )
 
 st.title("🏯 Amazon Japan 市场战略指挥舱 (Strategic Matrix)")
+st.caption("版本：2026.07.22-r2 · 排行榜稳定性修复")
 st.markdown("---")
 
 
