@@ -4,34 +4,48 @@ on:
   push:
     branches: [multisite-v3-beta]
 
+permissions:
+  contents: write
+
 jobs:
   probe:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - market: JP
-            url: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0-aEMMkENn3f4WyGVbUhB0D5XPpTCC1dJCL03MBkp3yUWUoz4vLEzFQPE_MkGeRvk6DuoA7IQwn23/pub?gid=1391802072&single=true&output=csv
-          - market: US
-            url: https://docs.google.com/spreadsheets/d/e/2PACX-1vQOANJBKLzLMNS74IPjQ66Ms-GnwmN0q6AiIvvd6tpmnbH3WaWn3A4J-ZS-yf4OwA/pub?output=csv
-          - market: DE
-            url: https://docs.google.com/spreadsheets/d/e/2PACX-1vSeGe8hIDkk5DvvjG1auCP0ZM6oIxyv2wQ_Pc9ASrKBpZN4OARzElDiNmbss_EOvg/pub?output=csv
-          - market: UK
-            url: https://docs.google.com/spreadsheets/d/e/2PACX-1vRuk9fOKFAVhRJDh_0ov0JI6ZqCvt338d1wwc12GGEICuNEtgZd7-J0hixVwr3cSg/pub?output=csv
     steps:
-      - name: Probe ${{ matrix.market }}
+      - uses: actions/checkout@v4
+        with:
+          ref: multisite-v3-beta
+      - name: Probe all public CSV sources
         shell: bash
         run: |
           set +e
-          curl -L --connect-timeout 15 --max-time 90 -A 'Mozilla/5.0' -o /tmp/source.csv -sS \
-            -w 'MARKET=${{ matrix.market }} HTTP=%{http_code} TYPE=%{content_type} BYTES=%{size_download} FINAL=%{url_effective}\n' \
-            '${{ matrix.url }}'
-          rc=$?
-          echo "CURL_RC=$rc"
-          if [ -f /tmp/source.csv ]; then
-            echo -n 'PREFIX_HEX='
-            head -c 64 /tmp/source.csv | od -An -tx1 | tr -d ' \n'
-            echo
+          : > source_probe_results.txt
+          probe() {
+            code="$1"
+            url="$2"
+            tmp="$(mktemp)"
+            result="$(curl -L --connect-timeout 15 --max-time 90 -A 'Mozilla/5.0' -o "$tmp" -sS \
+              -w "MARKET=$code HTTP=%{http_code} TYPE=%{content_type} BYTES=%{size_download} FINAL=%{url_effective}" \
+              "$url" 2>&1)"
+            rc=$?
+            prefix=""
+            if [ -f "$tmp" ]; then
+              prefix="$(head -c 64 "$tmp" | od -An -tx1 | tr -d ' \n')"
+            fi
+            printf '%s CURL_RC=%s PREFIX_HEX=%s\n' "$result" "$rc" "$prefix" | tee -a source_probe_results.txt
+            rm -f "$tmp"
+          }
+          probe JP 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0-aEMMkENn3f4WyGVbUhB0D5XPpTCC1dJCL03MBkp3yUWUoz4vLEzFQPE_MkGeRvk6DuoA7IQwn23/pub?gid=1391802072&single=true&output=csv'
+          probe US 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOANJBKLzLMNS74IPjQ66Ms-GnwmN0q6AiIvvd6tpmnbH3WaWn3A4J-ZS-yf4OwA/pub?output=csv'
+          probe DE 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeGe8hIDkk5DvvjG1auCP0ZM6oIxyv2wQ_Pc9ASrKBpZN4OARzElDiNmbss_EOvg/pub?output=csv'
+          probe UK 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRuk9fOKFAVhRJDh_0ov0JI6ZqCvt338d1wwc12GGEICuNEtgZd7-J0hixVwr3cSg/pub?output=csv'
+      - name: Commit probe result
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add source_probe_results.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: record source probe [skip ci]'
+            git push origin HEAD:multisite-v3-beta
           fi
-          exit 0
