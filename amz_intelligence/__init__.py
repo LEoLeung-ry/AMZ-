@@ -25,6 +25,8 @@ __all__ = [
     "prepare_market_data",
 ]
 
+from .na_patch import install_na_safe_text_patch
 from .csv_patch import install_csv_parser_patch
 
+install_na_safe_text_patch()
 install_csv_parser_patch()
