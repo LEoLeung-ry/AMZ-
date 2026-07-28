@@ -37,4 +37,15 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -q --upgrade pip && pip install -q -r requirements.txt
       - name: Validate live Google Sheet sources
+        id: live
+        continue-on-error: true
         run: python tests/live_source_smoke.py
+      - name: Upload live source result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-source-result
+          path: live_source_result.json
+      - name: Fail when live source validation failed
+        if: steps.live.outcome != 'success'
+        run: exit 1
