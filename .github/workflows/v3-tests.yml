@@ -40,5 +40,7 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install -q --upgrade pip && pip install -q -r requirements.txt
-      - name: Validate live Google Sheet source
+      - name: Check live source HTTP response
+        run: python tests/check_source_http.py ${{ matrix.market }}
+      - name: Parse standardize and score live source
         run: python tests/live_source_smoke.py ${{ matrix.market }}
