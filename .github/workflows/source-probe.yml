@@ -15,6 +15,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: multisite-v3-beta
+      - name: Install requests for Python probe
+        run: python -m pip install -q requests
       - name: Probe all public CSV sources
         shell: bash
         run: |
@@ -25,7 +27,7 @@ jobs:
             url="$2"
             tmp="$(mktemp)"
             result="$(curl -L --connect-timeout 15 --max-time 90 -A 'Mozilla/5.0' -o "$tmp" -sS \
-              -w "MARKET=$code HTTP=%{http_code} TYPE=%{content_type} BYTES=%{size_download} FINAL=%{url_effective}" \
+              -w "CURL MARKET=$code HTTP=%{http_code} TYPE=%{content_type} BYTES=%{size_download} FINAL=%{url_effective}" \
               "$url" 2>&1)"
             rc=$?
             prefix=""
@@ -33,6 +35,28 @@ jobs:
               prefix="$(head -c 64 "$tmp" | od -An -tx1 | tr -d ' \n')"
             fi
             printf '%s CURL_RC=%s PREFIX_HEX=%s\n' "$result" "$rc" "$prefix" | tee -a source_probe_results.txt
+            CODE="$code" URL="$url" python - <<'PY' >> source_probe_results.txt 2>&1
+          import os
+          import requests
+          code = os.environ["CODE"]
+          url = os.environ["URL"]
+          try:
+              response = requests.get(
+                  url,
+                  headers={"User-Agent": "Mozilla/5.0", "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.8"},
+                  timeout=(15, 90),
+              )
+              print(
+                  "REQUESTS",
+                  f"MARKET={code}",
+                  f"HTTP={response.status_code}",
+                  f"TYPE={response.headers.get('content-type')}",
+                  f"BYTES={len(response.content)}",
+                  f"FINAL={response.url}",
+              )
+          except Exception as exc:
+              print("REQUESTS", f"MARKET={code}", type(exc).__name__, repr(str(exc)))
+          PY
             rm -f "$tmp"
           }
           probe JP 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0-aEMMkENn3f4WyGVbUhB0D5XPpTCC1dJCL03MBkp3yUWUoz4vLEzFQPE_MkGeRvk6DuoA7IQwn23/pub?gid=1391802072&single=true&output=csv'
