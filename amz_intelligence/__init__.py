@@ -24,3 +24,7 @@ __all__ = [
     "load_market",
     "prepare_market_data",
 ]
+
+from .csv_patch import install_csv_parser_patch
+
+install_csv_parser_patch()
