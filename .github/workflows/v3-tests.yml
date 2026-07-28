@@ -28,6 +28,10 @@ jobs:
 
   live-source:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        market: [JP, US, DE, UK]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,16 +40,5 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install -q --upgrade pip && pip install -q -r requirements.txt
-      - name: Validate live Google Sheet sources
-        id: live
-        continue-on-error: true
-        run: python tests/live_source_smoke.py
-      - name: Upload live source result
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: live-source-result
-          path: live_source_result.json
-      - name: Fail when live source validation failed
-        if: steps.live.outcome != 'success'
-        run: exit 1
+      - name: Validate live Google Sheet source
+        run: python tests/live_source_smoke.py ${{ matrix.market }}
