@@ -15,8 +15,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: multisite-v3-beta
-      - name: Install requests for Python probe
-        run: python -m pip install -q requests
+      - name: Install probe dependencies
+        run: python -m pip install -q -r requirements.txt
       - name: Probe all public CSV sources
         shell: bash
         run: |
@@ -63,6 +63,11 @@ jobs:
           probe US 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOANJBKLzLMNS74IPjQ66Ms-GnwmN0q6AiIvvd6tpmnbH3WaWn3A4J-ZS-yf4OwA/pub?output=csv'
           probe DE 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeGe8hIDkk5DvvjG1auCP0ZM6oIxyv2wQ_Pc9ASrKBpZN4OARzElDiNmbss_EOvg/pub?output=csv'
           probe UK 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRuk9fOKFAVhRJDh_0ov0JI6ZqCvt338d1wwc12GGEICuNEtgZd7-J0hixVwr3cSg/pub?output=csv'
+          for code in JP US DE UK; do
+            echo "PARSER_BEGIN MARKET=$code" >> source_probe_results.txt
+            PYTHONPATH=. python tests/live_source_smoke.py "$code" >> source_probe_results.txt 2>&1
+            echo "PARSER_END MARKET=$code RC=$?" >> source_probe_results.txt
+          done
       - name: Commit probe result
         shell: bash
         run: |
