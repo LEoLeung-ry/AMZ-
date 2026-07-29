@@ -66,6 +66,7 @@ def validate_market(code: str) -> None:
     accessories = text.str.contains(
         r"glass|mug|cup|rack|holder|coaster|opener|stopper|decanter|corkscrew|case|comb|brush|trap|tool|book|"
         r"storage|container|bowl|mat|scoop|feeder|dispenser|shaker|bottle|envelope|wallet|spreader|applicator|"
+        r"replacement pads?|electrode pads?|replacement gel|ersatzpads|交換パッド|替换凝胶|替换贴片|"
         r"collagen mask|collagen cream|collagen serum|胶原面膜|胶原面霜|コラーゲンマスク",
         regex=True,
         case=False,
@@ -78,7 +79,8 @@ def validate_market(code: str) -> None:
         r"electrolyte replacements?|omega[- ]?3|lactobacillus|probiotics?|diet shakes?|meal replacement shakes?|"
         r"电解质替代|欧米茄3|乳酸菌|益生菌|减肥奶昔|代餐奶昔|放松剂|焦虑缓解|"
         r"cat food|dog food|pet food|animal feed|猫粮|狗粮|キャットフード|ドッグフード|katzenfutter|hundefutter|trockenfutter|"
-        r"gift cards?|gift certificates?|礼品卡|ギフトカード|geschenkkarte|gutschein|"
+        r"gift cards?|gift certificates?|event vouchers?|travel vouchers?|stored[- ]?value cards?|store currency cards?|"
+        r"礼品卡|活动券|旅行券|存储货币卡|储值卡|ギフトカード|geschenkkarte|gutschein|"
         r"\bbeer\b|啤酒|ビール|\bbier\b|"
         r"flea.*(?:treat|control|drop|medicine|collar|spray)|跳蚤药|ノミ.*(?:薬|駆除)|floh.*mittel|"
         r"育毛|発毛|生发|hair growth|hair regrowth|hair tonic|"
