@@ -16,7 +16,7 @@ from amz_intelligence.pages_insight import (
 from amz_intelligence.pages_market import render_matrix, render_opportunities, render_overview
 from amz_intelligence.ui_common import apply_visual_system, text_match_mask
 
-APP_VERSION = "2026.07.28-v3.0-beta"
+APP_VERSION = "2026.07.29-v3.0.1-beta"
 
 st.set_page_config(
     page_title="Amazon 全球类目机会系统",
