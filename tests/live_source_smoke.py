@@ -70,7 +70,10 @@ def validate_market(code: str) -> None:
     accessories = text.str.contains(
         r"glass|mug|cup|rack|holder|coaster|opener|stopper|decanter|corkscrew|case|comb|brush|trap|tool|book|"
         r"storage|container|bowl|mat|scoop|feeder|dispenser|shaker|bottle|envelope|wallet|spreader|applicator|"
-        r"容器|容器|behälter|flasche|replacement pads?|electrode pads?|replacement gel|ersatzpads|交換パッド|替换凝胶|替换贴片|"
+        r"parts?|accessories?|filters?|hoses?|bags?|wash arms?|attachments?|replacement|refills?|"
+        r"配件|零配件|部件|过滤器|滤网|软管|袋|洗臂|替换件|附件|"
+        r"zubehör|ersatzteile|teile|filter|schläuche|beutel|wascharme|aufsätze|"
+        r"容器|behälter|flasche|replacement pads?|electrode pads?|replacement gel|ersatzpads|交換パッド|替换凝胶|替换贴片|"
         r"collagen mask|collagen cream|collagen serum|胶原面膜|胶原面霜|コラーゲンマスク",
         regex=True,
         case=False,
