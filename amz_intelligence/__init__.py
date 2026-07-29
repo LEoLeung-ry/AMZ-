@@ -47,10 +47,12 @@ __all__ = [
 
 from .entry_rules_patch import install_supplemental_entry_rules
 from .entry_rules_live_patch import install_live_rule_refinements
+from .entry_rules_final_patch import install_final_entry_refinements
 from .na_patch import install_na_safe_text_patch
 from .csv_patch import install_csv_parser_patch
 
 install_supplemental_entry_rules()
 install_live_rule_refinements()
+install_final_entry_refinements()
 install_na_safe_text_patch()
 install_csv_parser_patch()
