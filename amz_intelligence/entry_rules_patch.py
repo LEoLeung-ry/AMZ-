@@ -98,6 +98,33 @@ def install_supplemental_entry_rules() -> None:
             )
         )
 
+    if "ELECTRICAL_APPLIANCE_SECURITY" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="ELECTRICAL_APPLIANCE_SECURITY",
+                family="电气家电/安防电子",
+                level="B",
+                terms=(
+                    r"tower fans?", r"pedestal fans?", r"table fans?", r"desk fans?", r"industrial fans?",
+                    r"handheld fans?", r"portable electric fans?", r"electric fans?",
+                    r"塔扇", r"落地扇", r"台扇", r"工厂风扇", r"工业风扇", r"手持风扇", r"电风扇",
+                    r"扇風機", r"工場扇", r"ハンディファン", r"卓上扇風機",
+                    r"turmventilator", r"standventilator", r"tischventilator", r"ventilator",
+                    r"coffee machines?", r"coffee makers?", r"espresso machines?", r"bean-to-cup",
+                    r"全自动咖啡机", r"全自動咖啡機", r"咖啡机", r"咖啡機", r"意式咖啡机",
+                    r"コーヒーメーカー", r"全自動コーヒーマシン", r"エスプレッソマシン",
+                    r"kaffeevollautomat", r"kaffeemaschine", r"espressomaschine",
+                    r"surveillance cameras?", r"security cameras?", r"cctv", r"ip cameras?",
+                    r"监控摄像头", r"監控攝像頭", r"安防摄像头", r"防犯カメラ", r"監視カメラ",
+                    r"überwachungskamera", r"sicherheitskamera",
+                ),
+                excludes=(r"fan cover", r"fan guard", r"fan blade", r"camera case", r"camera mount", r"camera bag", r"coffee filter paper"),
+                reasons=("电气安全、EMC或无线电合规", "插头、电压、能效和电池要求", "安防隐私、产品责任及召回风险"),
+                resources=("目的国电气/无线电测试与认证", "稳定整机和关键零部件供应链", "产品责任保险、售后和召回预案"),
+                capability="electrical_compliance",
+            )
+        )
+
     if "WEAPONS_EXPLOSIVES" not in existing:
         additions.append(
             rules.BarrierRule(
