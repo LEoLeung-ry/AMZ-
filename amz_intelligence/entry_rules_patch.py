@@ -80,6 +80,130 @@ def install_supplemental_entry_rules() -> None:
             )
         )
 
+    if "SUPPLEMENT_EXTENDED" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="SUPPLEMENT_EXTENDED",
+                family="膳食补充剂/营养及情绪支持",
+                level="C",
+                terms=(
+                    r"electrolyte replacements?", r"electrolyte supplements?", r"oral rehydration",
+                    r"\bomega[- ]?3\b", r"fish oil supplements?", r"lactobacillus", r"probiotics?", r"prebiotics?",
+                    r"diet shakes?", r"weight loss shakes?", r"meal replacement shakes?",
+                    r"relaxants?\s*&?\s*anxiety relief", r"anxiety relief supplements?", r"calming supplements?",
+                    r"电解质替代", r"电解质补充", r"欧米茄3", r"鱼油补充剂", r"乳酸菌", r"益生菌", r"益生元",
+                    r"减肥奶昔", r"代餐奶昔", r"放松剂", r"焦虑缓解", r"情绪舒缓",
+                    r"電解質補給", r"オメガ[- ]?3", r"乳酸菌", r"プロバイオティクス", r"ダイエットシェイク",
+                    r"beruhigungsmittel", r"angstlinderung", r"elektrolytersatz", r"laktobazillus", r"probiotika",
+                    r"diät[- ]?shake", r"mahlzeitenersatz[- ]?shake",
+                ),
+                excludes=(
+                    r"bottle", r"shaker", r"container", r"storage", r"holder", r"mixer", r"blender",
+                    r"electrolyte analyzer", r"test strip", r"book", r"guide",
+                ),
+                reasons=("入口型营养或情绪支持产品", "成分、标签和功效宣称要求", "生产质量、保质期与批次追溯"),
+                resources=("目标国食品/补充剂分类确认", "配方、检测和标签资料", "当地进口、追溯和产品责任体系"),
+                capability="supplement_compliance",
+            )
+        )
+
+    if "PET_FOOD_FEED" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="PET_FOOD_FEED",
+                family="宠物食品/饲料",
+                level="C",
+                terms=(
+                    r"cat food", r"dog food", r"pet food", r"animal feed", r"dry cat food", r"dry dog food",
+                    r"wet cat food", r"wet dog food", r"cat treats?", r"dog treats?",
+                    r"猫粮", r"狗粮", r"宠物食品", r"宠物饲料", r"猫零食", r"狗零食",
+                    r"キャットフード", r"ドッグフード", r"ペットフード", r"猫用フード", r"犬用フード",
+                    r"katzenfutter", r"hundefutter", r"tierfutter", r"trockenfutter", r"nassfutter",
+                ),
+                excludes=(
+                    r"storage", r"container", r"bowl", r"mat", r"scoop", r"feeder", r"dispenser",
+                    r"保存容器", r"食器", r"ボウル", r"futterautomat", r"futternapf",
+                ),
+                reasons=("宠物食品/饲料进口与标签要求", "原料、动物源成分和检疫风险", "保质期、批次与召回责任"),
+                resources=("目标国宠物食品/饲料分类确认", "合格工厂、成分和检测资料", "进口、追溯及召回体系"),
+                capability="food_import",
+            )
+        )
+
+    if "GIFT_CARD_NONPHYSICAL" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="GIFT_CARD_NONPHYSICAL",
+                family="储值卡/非实体发行",
+                level="D",
+                terms=(
+                    r"gift cards?", r"gift certificates?", r"digital gift cards?", r"e[- ]?gift cards?",
+                    r"prepaid store cards?", r"store credit", r"礼品卡", r"礼券", r"储值卡",
+                    r"ギフトカード", r"商品券", r"geschenkkarte", r"gutscheinkarte", r"gutschein",
+                ),
+                excludes=(
+                    r"holder", r"box", r"envelope", r"display", r"rack", r"case", r"wallet", r"organizer",
+                    r"カードケース", r"封筒", r"収納", r"halter", r"umschlag",
+                ),
+                reasons=("非实体或储值发行类目", "平台发行授权和金融/消费者保护要求", "不属于普通实物跨境选品"),
+                resources=("平台或品牌发行授权", "支付、税务与消费者保护合规"),
+            )
+        )
+
+    if "EMS_MUSCLE_STIMULATION" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="EMS_MUSCLE_STIMULATION",
+                family="电气健身/功效设备",
+                level="B",
+                terms=(
+                    r"\bems\b", r"electrical muscle stimulation", r"muscle stimulators?", r"ab belts?", r"abdominal belts?",
+                    r"腹肌贴", r"腹肌带", r"肌肉刺激器", r"电脉冲健身", r"腹筋ベルト", r"EMS・腹筋ベルト",
+                    r"ems trainer", r"muskelstimulator", r"bauchmuskelgürtel",
+                ),
+                excludes=(r"replacement pads?", r"electrode pads?", r"替换贴片", r"交換パッド", r"ersatzpads"),
+                reasons=("电气和皮肤接触安全", "健身/治疗功效宣称边界", "电池、EMC和产品责任"),
+                resources=("目标国产品分类确认", "电气、EMC和皮肤接触测试", "功效证据、说明书和责任保险"),
+                capability="electrical_compliance",
+            )
+        )
+
+    if "FERTILIZER_AGRICULTURAL_INPUT" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="FERTILIZER_AGRICULTURAL_INPUT",
+                family="肥料/农业投入品",
+                level="B",
+                terms=(
+                    r"fertili[sz]ers?", r"lawn fertili[sz]ers?", r"plant food", r"soil nutrients?",
+                    r"草坪肥", r"肥料", r"植物营养剂", r"园艺肥", r"園芸肥料",
+                    r"rasendünger", r"pflanzendünger", r"dünger", r"bodennährstoff",
+                ),
+                excludes=(r"spreader", r"applicator", r"storage", r"container", r"撒布机", r"施肥器", r"streuwagen"),
+                reasons=("成分、用途和标签可能受农业/化学品规则约束", "运输、储存和环境责任", "不同国家配方准入差异"),
+                resources=("目标国肥料/化学品分类确认", "成分、SDS和标签资料", "合规包装、运输与产品责任管理"),
+                capability="chemical_dg",
+            )
+        )
+
+    if "PEST_CONTROL_REPELLENT" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="PEST_CONTROL_REPELLENT",
+                family="害虫防治/驱避产品",
+                level="B",
+                terms=(
+                    r"pest control", r"moth repellents?", r"moth killers?", r"moth traps?", r"insect repellents?", r"insect killers?",
+                    r"防蛾", r"飞蛾防治", r"灭蛾", r"害虫防治", r"驱虫剂", r"防虫剂",
+                    r"防虫", r"蛾駆除", r"害虫駆除", r"mottenmittel", r"mottenfalle", r"schädlingsabwehr",
+                ),
+                excludes=(r"book", r"toy", r"costume", r"poster", r"sticker", r"jewelry", r"図鑑", r"玩具"),
+                reasons=("驱避/杀虫功效可能触及农药或生物杀灭剂规则", "有效成分和标签要求", "危险品运输及产品责任"),
+                resources=("成分和作用机理确认", "目标国注册/豁免判断", "SDS、标签和合规物流"),
+                capability="pet_medicine_pesticide",
+            )
+        )
+
     if "SAFETY_DETECTOR" not in existing:
         additions.append(
             rules.BarrierRule(
