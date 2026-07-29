@@ -42,6 +42,36 @@ def validate_market(code: str) -> None:
         raise AssertionError(f"{code} has invalid EntryClass")
     if not scored["DefaultBusinessEligible"].dtype == bool:
         raise AssertionError(f"{code} business eligibility is not boolean")
+    if scored.loc[scored["DefaultBusinessEligible"], "EntryClass"].isin(["C", "D"]).any():
+        raise AssertionError(f"{code} C/D category leaked into the default business ranking")
+
+    text = scored["BusinessText"].astype("string").fillna("")
+    accessories = text.str.contains(
+        r"glass|mug|cup|rack|holder|coaster|opener|stopper|decanter|corkscrew|case|comb|brush|trap|tool|book",
+        regex=True,
+        case=False,
+        na=False,
+    )
+    known_regulated = text.str.contains(
+        r"protein powder|蛋白粉|プロテイン|proteinpulver|eiweißpulver|イソフラボン|瓜氨酸|シトルリン|"
+        r"\bbeer\b|啤酒|ビール|\bbier\b|"
+        r"flea.*(?:treat|control|drop|medicine|collar|spray)|跳蚤药|ノミ.*(?:薬|駆除)|floh.*mittel|"
+        r"育毛|発毛|生发|hair growth",
+        regex=True,
+        case=False,
+        na=False,
+    ) & ~accessories
+    leaked = scored.loc[known_regulated & scored["DefaultBusinessEligible"]]
+    if not leaked.empty:
+        examples = leaked[["Category", "CategoryLocal", "RegulatoryFamily", "EntryClass"]].head(10).to_dict("records")
+        raise AssertionError(f"{code} known regulated categories leaked into main ranking: {examples}")
+
+    top = scored.loc[scored["DefaultBusinessEligible"]].nlargest(5, "FinalPriorityScore")
+    print(
+        "LIVE_TOP5",
+        code,
+        top[["Category", "CategoryLocal", "EntryClass", "FinalPriorityScore", "OpportunityScore"]].to_dict("records"),
+    )
     print(
         "LIVE_SOURCE_SMOKE_OK",
         code,
