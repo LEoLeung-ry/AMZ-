@@ -70,7 +70,7 @@ def validate_market(code: str) -> None:
     accessories = text.str.contains(
         r"glass|mug|cup|rack|holder|coaster|opener|stopper|decanter|corkscrew|case|comb|brush|trap|tool|book|"
         r"storage|container|bowl|mat|scoop|feeder|dispenser|shaker|bottle|envelope|wallet|spreader|applicator|"
-        r"replacement pads?|electrode pads?|replacement gel|ersatzpads|交換パッド|替换凝胶|替换贴片|"
+        r"容器|容器|behälter|flasche|replacement pads?|electrode pads?|replacement gel|ersatzpads|交換パッド|替换凝胶|替换贴片|"
         r"collagen mask|collagen cream|collagen serum|胶原面膜|胶原面霜|コラーゲンマスク",
         regex=True,
         case=False,
@@ -90,6 +90,8 @@ def validate_market(code: str) -> None:
         r"\bbeer\b|啤酒|ビール|\bbier\b|"
         r"sex toys?|male masturbators?|男士自慰用品|アダルト用ホール|masturbatoren?|"
         r"eye drops?|itch remedies?|眼药水|止痒药|目薬|augentropfen|juckreizmittel|"
+        r"condoms?|安全套|コンドーム|kondome?|disinfectants?|消毒液|除菌剤|desinfektionsmittel|"
+        r"smoking cessation|戒烟|rauchentwöhnung|digestive aids?|助消化|verdauungshilfen?|"
         r"flea.*(?:treat|control|drop|medicine|collar|spray)|跳蚤药|ノミ.*(?:薬|駆除)|floh.*mittel|"
         r"育毛|発毛|生发|hair growth|hair regrowth|hair tonic|"
         r"\bcpap\b|\bbipap\b|sleep apnea|呼吸机配件|schlafapnoe|"
@@ -108,10 +110,11 @@ def validate_market(code: str) -> None:
         r"fertili[sz]er|草坪肥|園芸肥料|rasendünger|pflanzendünger|"
         r"moth repellent|moth killer|moth trap|防蛾|飞蛾防治|mottenmittel|mottenfalle|"
         r"smoke detector|smoke alarm|烟雾探测器|rauchmelder|"
-        r"upright vacuums?|carpet cleaning machines?|dishwashers?|robotic lawn mowers?|"
-        r"立式吸尘器|地毯清洗机|洗碗机|机器人割草机|staubsauger|teppichreiniger|geschirrspüler|mähroboter|"
+        r"upright vacuums?|carpet cleaning machines?|dishwashers?|robotic lawn mowers?|heat pump dryers?|fitness bikes?|"
+        r"立式吸尘器|地毯清洗机|洗碗机|机器人割草机|热泵烘干机|健身自行车|"
+        r"staubsauger|teppichreiniger|geschirrspüler|mähroboter|wärmepumpentrockner|fitnessbikes?|"
         r"mouthwash|oral care supplies?|漱口水|口腔护理用品|mundspülung|mundpflegeprodukte|"
-        r"game consoles?|gaming controllers?|游戏主机|游戏控制器|spielkonsolen?",
+        r"game consoles?|gaming controllers?|\bconsoles\b|\bcontrollers\b|游戏主机|游戏控制器|spielkonsolen?",
         regex=True,
         case=False,
         na=False,
