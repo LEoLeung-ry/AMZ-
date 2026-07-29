@@ -15,7 +15,9 @@ from amz_intelligence import (
     STRATEGY_PRESETS,
     enrich_entry_rules,
 )
+from amz_intelligence.actionability_v32 import add_actionability_v32
 from amz_intelligence.engine import apply_strategy_score, load_all_markets
+from amz_intelligence.matrix_v32 import render_matrix_v32
 from amz_intelligence.model_v32 import (
     NEUTRAL_PROFILE,
     NEUTRAL_PROFILE_LABEL,
@@ -23,7 +25,6 @@ from amz_intelligence.model_v32 import (
     apply_decision_model_v32,
 )
 from amz_intelligence.pages_insight import render_quality, render_trends
-from amz_intelligence.pages_market import render_matrix
 from amz_intelligence.pages_v32 import (
     render_cross_market_v32,
     render_diagnosis_v32,
@@ -35,7 +36,7 @@ from amz_intelligence.pages_v32 import (
 from amz_intelligence.ui_common import apply_visual_system, text_match_mask
 
 
-APP_VERSION = "2026.07.29-v3.2-beta"
+APP_VERSION = "2026.07.29-v3.2.1-beta"
 
 st.set_page_config(
     page_title="Amazon 全球类目机会系统",
@@ -95,7 +96,8 @@ def cached_build_model(
         fx_reference_date=fx_reference_date,
         fx_source=fx_source,
     )
-    return add_strategy_robustness(_data, decision, root_blend=root_blend)
+    robust = add_strategy_robustness(_data, decision, root_blend=root_blend)
+    return add_actionability_v32(robust)
 
 
 def custom_weights(strategy: str) -> Mapping[str, float] | None:
@@ -287,6 +289,12 @@ with st.sidebar:
         key="v32_entry_classes",
     )
     only_physical = st.toggle("排除数字商品高风险节点", True, key="v32_only_physical")
+    exclude_broad_nodes = st.toggle(
+        "排除名称过宽节点",
+        True,
+        help="默认隐藏如 Systems、Strips、Powders 等难以直接定义产品的聚合名称；关闭后仍可研究。",
+        key="v32_exclude_broad",
+    )
     min_confidence = st.slider("最低数据置信度", 0, 100, 50, 5, key="v32_min_confidence")
     min_evidence = st.slider("最低证据字段覆盖", 0, 100, 0, 5, key="v32_min_evidence")
     min_rank_score = st.slider("最低排序分", 0, 100, 0, 1, key="v32_min_rank")
@@ -330,6 +338,8 @@ mask &= market_df["RootStandard"].isin(selected_roots) if selected_roots else Fa
 mask &= market_df["EntryClass"].isin(selected_entry_classes) if selected_entry_classes else False
 if only_physical:
     mask &= market_df["DigitalRisk"].ne("高")
+if exclude_broad_nodes:
+    mask &= ~market_df["BroadNodeWarning"].fillna(False)
 mask &= market_df["DataQualityScore"].ge(min_confidence)
 mask &= market_df["EvidenceCoverageScore"].ge(min_evidence)
 mask &= market_df[rank_column].ge(min_rank_score)
@@ -345,7 +355,7 @@ st.markdown(
     <section class="hero">
       <div class="hero-kicker">Amazon Multi-Market Category Intelligence</div>
       <h1>全球类目机会、规则预警与稳健性系统</h1>
-      <p>默认不使用历史品类偏好。市场机会、规则预警、公司画像和人民币换算分层展示；五套策略共同检验结果是否依赖单一权重。</p>
+      <p>默认不使用历史品类偏好。市场机会、规则预警、公司画像、类目可操作性和人民币换算分层展示；五套策略共同检验结果是否依赖单一权重。</p>
       <div class="meta-row">
         <span class="pill">{config.flag} 主站点：{config.name}</span>
         <span class="pill">🧭 当前策略：{strategy}</span>
@@ -387,7 +397,7 @@ with tabs[1]:
 with tabs[2]:
     render_robustness_v32(scored, market_code)
 with tabs[3]:
-    render_matrix(filtered)
+    render_matrix_v32(filtered)
 with tabs[4]:
     render_cross_market_v32(scored, query)
 with tabs[5]:
