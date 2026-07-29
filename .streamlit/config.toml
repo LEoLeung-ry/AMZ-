@@ -1,0 +1,22 @@
+[theme]
+base = "light"
+primaryColor = "#2563EB"
+backgroundColor = "#F6F8FC"
+secondaryBackgroundColor = "#EFF6FF"
+textColor = "#0F172A"
+font = "sans-serif"
+baseRadius = "large"
+buttonRadius = "full"
+showSidebarBorder = true
+
+[theme.sidebar]
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#1E293B"
+textColor = "#E5E7EB"
+primaryColor = "#60A5FA"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+maxUploadSize = 200
