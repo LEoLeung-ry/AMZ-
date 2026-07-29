@@ -41,7 +41,7 @@ for market_code, config in MARKETS.items():
     prepared, diag = prepare_market_data(
         synthetic_raw(market_code),
         config,
-        fetch_metadata={"header_row": 1, "fetched_at": "2026-07-29T00:00:00Z"},
+        fetch_metadata={"header_row": 1, "fetched_at": "2026-07-29 00:00:00"},
     )
     frames.append(prepared)
     diagnostics[market_code] = diag
