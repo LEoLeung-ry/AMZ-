@@ -65,6 +65,7 @@ def validate_market(code: str) -> None:
     text = scored["BusinessText"].astype("string").fillna("")
     accessories = text.str.contains(
         r"glass|mug|cup|rack|holder|coaster|opener|stopper|decanter|corkscrew|case|comb|brush|trap|tool|book|"
+        r"storage|container|bowl|mat|scoop|feeder|dispenser|shaker|bottle|envelope|wallet|spreader|applicator|"
         r"collagen mask|collagen cream|collagen serum|胶原面膜|胶原面霜|コラーゲンマスク",
         regex=True,
         case=False,
@@ -74,6 +75,10 @@ def validate_market(code: str) -> None:
         r"protein powder|蛋白粉|プロテイン|proteinpulver|eiweißpulver|イソフラボン|瓜氨酸|シトルリン|"
         r"protein bars?|energy bars?|nutrition bars?|蛋白棒|能量棒|プロテインバー|"
         r"collagen|kollagen|胶原蛋白|コラーゲン|"
+        r"electrolyte replacements?|omega[- ]?3|lactobacillus|probiotics?|diet shakes?|meal replacement shakes?|"
+        r"电解质替代|欧米茄3|乳酸菌|益生菌|减肥奶昔|代餐奶昔|放松剂|焦虑缓解|"
+        r"cat food|dog food|pet food|animal feed|猫粮|狗粮|キャットフード|ドッグフード|katzenfutter|hundefutter|trockenfutter|"
+        r"gift cards?|gift certificates?|礼品卡|ギフトカード|geschenkkarte|gutschein|"
         r"\bbeer\b|啤酒|ビール|\bbier\b|"
         r"flea.*(?:treat|control|drop|medicine|collar|spray)|跳蚤药|ノミ.*(?:薬|駆除)|floh.*mittel|"
         r"育毛|発毛|生发|hair growth|hair regrowth|hair tonic|"
@@ -87,6 +92,20 @@ def validate_market(code: str) -> None:
     if not leaked.empty:
         examples = leaked[["Category", "CategoryLocal", "RegulatoryFamily", "EntryClass"]].head(10).to_dict("records")
         raise AssertionError(f"{code} known regulated categories leaked into main ranking: {examples}")
+
+    known_conditional = text.str.contains(
+        r"\bems\b|electrical muscle stimulation|muscle stimulator|ab belt|腹肌贴|腹筋ベルト|"
+        r"fertili[sz]er|草坪肥|園芸肥料|rasendünger|pflanzendünger|"
+        r"moth repellent|moth killer|moth trap|防蛾|飞蛾防治|mottenmittel|mottenfalle|"
+        r"smoke detector|smoke alarm|烟雾探测器|rauchmelder",
+        regex=True,
+        case=False,
+        na=False,
+    ) & ~accessories
+    conditional_leaked = scored.loc[known_conditional & scored["EntryClass"].eq("A")]
+    if not conditional_leaked.empty:
+        examples = conditional_leaked[["Category", "CategoryLocal", "RegulatoryFamily", "EntryClass"]].head(10).to_dict("records")
+        raise AssertionError(f"{code} known conditional categories remained A: {examples}")
 
     top = scored.loc[scored["DefaultBusinessEligible"]].nlargest(5, "ConsensusPriorityScore")
     print(
