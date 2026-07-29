@@ -14,20 +14,15 @@ def validate_market(code: str) -> None:
     if len(frame) < 1_000:
         raise AssertionError(f"{code} returned only {len(frame)} records")
     required = {
-        "CategoryID",
-        "Category",
-        "Revenue",
-        "Sales",
-        "ASINCount",
-        "DataQualityScore",
-        "EligibleCore",
-        "MarketCode",
+        "CategoryID", "Category", "Revenue", "Sales", "ASINCount", "DataQualityScore",
+        "EligibleCore", "MarketCode",
     }
     missing = required.difference(frame.columns)
     if missing:
         raise AssertionError(f"{code} missing standardized columns: {sorted(missing)}")
     if diagnostics["prepared_rows"] != len(frame):
         raise AssertionError(f"{code} diagnostics row count mismatch")
+
     opportunity = apply_strategy_score(frame, "大单品")
     scored = apply_business_model(opportunity, profile="当前公司画像")
     score_columns = ["OpportunityScore", "FinalPriorityScore", "CompanyFitScore", "CrossBorderFriendliness"]
@@ -47,16 +42,21 @@ def validate_market(code: str) -> None:
 
     text = scored["BusinessText"].astype("string").fillna("")
     accessories = text.str.contains(
-        r"glass|mug|cup|rack|holder|coaster|opener|stopper|decanter|corkscrew|case|comb|brush|trap|tool|book",
+        r"glass|mug|cup|rack|holder|coaster|opener|stopper|decanter|corkscrew|case|comb|brush|trap|tool|book|"
+        r"collagen mask|collagen cream|collagen serum|胶原面膜|胶原面霜|コラーゲンマスク",
         regex=True,
         case=False,
         na=False,
     )
     known_regulated = text.str.contains(
         r"protein powder|蛋白粉|プロテイン|proteinpulver|eiweißpulver|イソフラボン|瓜氨酸|シトルリン|"
+        r"protein bars?|energy bars?|nutrition bars?|蛋白棒|能量棒|プロテインバー|"
+        r"collagen|kollagen|胶原蛋白|コラーゲン|"
         r"\bbeer\b|啤酒|ビール|\bbier\b|"
         r"flea.*(?:treat|control|drop|medicine|collar|spray)|跳蚤药|ノミ.*(?:薬|駆除)|floh.*mittel|"
-        r"育毛|発毛|生发|hair growth",
+        r"育毛|発毛|生发|hair growth|hair regrowth|hair tonic|"
+        r"\bcpap\b|\bbipap\b|sleep apnea|呼吸机配件|schlafapnoe|"
+        r"reusable respirator|respirator mask|防毒面具|呼吸防护器|atemschutzmaske|atemschutzgerät",
         regex=True,
         case=False,
         na=False,
