@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import sys
 
-from amz_intelligence import apply_business_model
+from amz_intelligence import enrich_entry_rules
 from amz_intelligence.config import MARKETS
 from amz_intelligence.engine import apply_strategy_score, load_market
+from amz_intelligence.model_v32 import (
+    NEUTRAL_PROFILE,
+    add_strategy_robustness,
+    apply_decision_model_v32,
+)
 
 
 def validate_market(code: str) -> None:
@@ -23,9 +28,20 @@ def validate_market(code: str) -> None:
     if diagnostics["prepared_rows"] != len(frame):
         raise AssertionError(f"{code} diagnostics row count mismatch")
 
-    opportunity = apply_strategy_score(frame, "大单品")
-    scored = apply_business_model(opportunity, profile="当前公司画像")
-    score_columns = ["OpportunityScore", "FinalPriorityScore", "CompanyFitScore", "CrossBorderFriendliness"]
+    enriched = enrich_entry_rules(frame)
+    opportunity = apply_strategy_score(enriched, "大单品")
+    decision = apply_decision_model_v32(opportunity, profile=NEUTRAL_PROFILE)
+    scored = add_strategy_robustness(enriched, decision)
+
+    score_columns = [
+        "OpportunityScore",
+        "FinalPriorityScore",
+        "ConsensusPriorityScore",
+        "ConservativePriorityScore",
+        "StrategyAgreementScore",
+        "EvidenceCoverageScore",
+        "CrossBorderFriendliness",
+    ]
     for column in score_columns:
         if scored[column].isna().any():
             raise AssertionError(f"{code} {column} contains NA")
@@ -35,10 +51,16 @@ def validate_market(code: str) -> None:
         raise AssertionError(f"{code} CNY conversion is entirely missing")
     if not scored["EntryClass"].isin(["A", "B", "C", "D"]).all():
         raise AssertionError(f"{code} has invalid EntryClass")
+    if scored["CompanyFitApplied"].any():
+        raise AssertionError(f"{code} neutral mode unexpectedly applied company fit")
+    if not scored["CompanyFitScore"].eq(100).all():
+        raise AssertionError(f"{code} neutral mode company multiplier is not neutral")
     if not scored["DefaultBusinessEligible"].dtype == bool:
         raise AssertionError(f"{code} business eligibility is not boolean")
     if scored.loc[scored["DefaultBusinessEligible"], "EntryClass"].isin(["C", "D"]).any():
         raise AssertionError(f"{code} C/D category leaked into the default business ranking")
+    if not scored["StrategySupportCount"].between(0, 5).all():
+        raise AssertionError(f"{code} strategy support outside 0-5")
 
     text = scored["BusinessText"].astype("string").fillna("")
     accessories = text.str.contains(
@@ -66,20 +88,30 @@ def validate_market(code: str) -> None:
         examples = leaked[["Category", "CategoryLocal", "RegulatoryFamily", "EntryClass"]].head(10).to_dict("records")
         raise AssertionError(f"{code} known regulated categories leaked into main ranking: {examples}")
 
-    top = scored.loc[scored["DefaultBusinessEligible"]].nlargest(5, "FinalPriorityScore")
+    top = scored.loc[scored["DefaultBusinessEligible"]].nlargest(5, "ConsensusPriorityScore")
     print(
-        "LIVE_TOP5",
+        "LIVE_TOP5_V32",
         code,
-        top[["Category", "CategoryLocal", "EntryClass", "FinalPriorityScore", "OpportunityScore"]].to_dict("records"),
+        top[
+            [
+                "Category",
+                "CategoryLocal",
+                "EntryClass",
+                "ConsensusPriorityScore",
+                "ConservativePriorityScore",
+                "StrategyAgreementScore",
+            ]
+        ].to_dict("records"),
     )
     print(
-        "LIVE_SOURCE_SMOKE_OK",
+        "LIVE_SOURCE_SMOKE_V32_OK",
         code,
         {
             "rows": len(frame),
             "eligible_physical": diagnostics["eligible_physical_rows"],
             "business_eligible": int(scored["DefaultBusinessEligible"].sum()),
             "entry_counts": scored["EntryClass"].value_counts().to_dict(),
+            "high_consensus": int(scored["StrategyRobustnessLabel"].eq("高共识").sum()),
         },
     )
 
