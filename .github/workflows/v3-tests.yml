@@ -36,10 +36,12 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install -q --upgrade pip && pip install -q -r requirements.txt
-      - name: Run legacy and v3.2 Streamlit UI smoke tests
+      - name: Run synthetic Streamlit UI smoke tests
         run: |
           PYTHONPATH=. python tests/run_ui_smoke.py
           PYTHONPATH=. python tests/run_ui_smoke_v32.py
+      - name: Run actual V3.2 app with live sources
+        run: PYTHONPATH=. python tests/run_app_v32_live_smoke.py
 
   live-source:
     runs-on: ubuntu-latest
