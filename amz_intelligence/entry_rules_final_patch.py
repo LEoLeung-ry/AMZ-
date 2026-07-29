@@ -118,10 +118,14 @@ def install_final_entry_refinements() -> None:
                 code="GENERIC_CONTROLLER_HARDWARE",
                 family="电子控制器/兼容硬件",
                 level="B",
-                terms=(r"\bcontrollers\b", r"\bcontroller\b", r"控制器", r"コントローラー", r"steuergeräte?", r"steuerungen?"),
+                terms=(
+                    r"\bcontrollers\b", r"\bcontroller\b", r"\bconsoles\b", r"\bconsole\b",
+                    r"控制器", r"控制台", r"游戏主机", r"コントローラー", r"ゲーム機",
+                    r"steuergeräte?", r"steuerungen?", r"spielkonsolen?",
+                ),
                 excludes=(
                     r"financial controller", r"controller job", r"temperature controller book", r"console table", r"car console",
-                    r"管理人员", r"财务", r"本", r"家具",
+                    r"management console", r"管理人员", r"财务", r"本", r"家具", r"autokonsole",
                 ),
                 reasons=("电气、无线电或兼容性要求", "品牌授权和知识产权风险", "固件、售后和产品责任"),
                 resources=("用途和产品类型确认", "电气/无线电及兼容性测试", "知识产权、售后和召回能力"),
