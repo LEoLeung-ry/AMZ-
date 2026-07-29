@@ -11,7 +11,16 @@ import streamlit as st
 
 from .config import FACTOR_LABELS, MARKETS
 from .engine import compute_trend_metrics, explain_category
-from .ui_common import compact_number, factor_long, match_confidence, money, text_match_mask
+from .ui_common import (
+    compact_number,
+    concat_text,
+    factor_long,
+    match_confidence,
+    money,
+    scalar_text,
+    text_match_mask,
+    text_values,
+)
 
 
 def render_cross_market(scored: pd.DataFrame, default_query: str = "") -> None:
@@ -32,7 +41,7 @@ def render_cross_market(scored: pd.DataFrame, default_query: str = "") -> None:
     if matched.empty:
         st.warning("四站均未找到匹配类目，可尝试英文、当地语言或更短关键词。")
         return
-    matched["站点"] = matched["MarketFlag"] + " " + matched["Market"]
+    matched["站点"] = concat_text(matched["MarketFlag"], matched["Market"], sep=" ")
     matched["市场销售额"] = matched.apply(lambda row: money(row["Revenue"], row["MarketCode"]), axis=1)
     matched["平均价格显示"] = matched.apply(lambda row: money(row["ASP"], row["MarketCode"]), axis=1)
     matched["单ASIN收入显示"] = matched.apply(lambda row: money(row["RevenuePerASIN"], row["MarketCode"]), axis=1)
@@ -56,7 +65,8 @@ def render_cross_market(scored: pd.DataFrame, default_query: str = "") -> None:
     best = matched.sort_values("OpportunityScore", ascending=False).groupby("MarketCode", as_index=False, observed=True).head(1)
     if not best.empty:
         long = factor_long(best, ["MarketCode", "MarketFlag", "Market", "Category"])
-        long["候选"] = long["MarketFlag"] + " " + long["Market"] + "｜" + long["Category"].str.slice(0, 18)
+        market_label = concat_text(long["MarketFlag"], long["Market"], sep=" ")
+        long["候选"] = concat_text(market_label, text_values(long["Category"]).str.slice(0, 18), sep="｜")
         fig = px.bar(long, x="FactorLabel", y="Score", color="候选", barmode="group", title="各站点最高匹配候选的因子对比")
         fig.update_layout(height=500, yaxis_range=[0, 100], legend_orientation="h")
         st.plotly_chart(fig, use_container_width=True, config={"displaylogo": False})
@@ -96,12 +106,12 @@ def render_diagnosis(pool: pd.DataFrame, market_code: str) -> None:
         st.markdown("### 系统诊断")
         for note in explain_category(row):
             st.markdown(f"- {note}")
-        if row["TopKeyword"]:
+        if scalar_text(row["TopKeyword"]):
             suffix = f"｜头部关键词占搜索量约 {row['TopKeywordShare']:.2%}" if pd.notna(row["TopKeywordShare"]) else ""
             st.info(f"热门关键词：{row['TopKeyword']}{suffix}")
-        if row["PriceBand"]:
+        if scalar_text(row["PriceBand"]):
             st.caption(f"源数据高转化价格区间：{row['PriceBand']}")
-        if row["Link"]:
+        if scalar_text(row["Link"]):
             st.link_button("打开 Amazon 类目页 ↗", row["Link"], use_container_width=True)
 
     metrics = pd.DataFrame({
@@ -130,7 +140,7 @@ def render_trends(scored: pd.DataFrame) -> None:
     st.markdown("### 当前可用：结构性需求机会信号")
     st.caption("该信号衡量当前需求强度、供给可进入性与流量效率，不代表最近几个月正在上涨。")
     structural = scored.loc[scored["EligiblePhysical"]].sort_values(["DemandSupplySignal", "DataQualityScore"], ascending=False).copy()
-    structural["站点"] = structural["MarketFlag"] + " " + structural["Market"]
+    structural["站点"] = concat_text(structural["MarketFlag"], structural["Market"], sep=" ")
     structural["销售额显示"] = structural.apply(lambda row: money(row["Revenue"], row["MarketCode"]), axis=1)
     st.dataframe(
         structural[["站点", "Category", "CategoryLocal", "RootStandard", "DemandSupplySignal", "DemandFactor", "AccessFactor", "EfficiencyFactor", "销售额显示", "ASINCount", "DataQualityScore", "Link"]].head(300),
