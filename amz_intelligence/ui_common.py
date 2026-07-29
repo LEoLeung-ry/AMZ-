@@ -3,10 +3,40 @@ from __future__ import annotations
 import re
 from typing import Iterable
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
 from .config import FACTOR_LABELS, MARKETS
+
+
+def scalar_text(value: object) -> str:
+    """Return a display-safe string without ever evaluating pd.NA as a boolean."""
+    if value is None:
+        return ""
+    try:
+        missing = pd.isna(value)
+        if isinstance(missing, (bool, np.bool_)) and bool(missing):
+            return ""
+    except (TypeError, ValueError):
+        pass
+    text = str(value)
+    return "" if text.casefold() in {"<na>", "nan", "none", "nat"} else text
+
+
+def text_values(series: pd.Series) -> pd.Series:
+    """Normalize object, category, Arrow, and pandas StringDtype columns to safe strings."""
+    return series.map(scalar_text).astype("string").fillna("")
+
+
+def concat_text(*series: pd.Series, sep: str = " ") -> pd.Series:
+    """Vectorized, NA-safe string concatenation that also supports categorical columns."""
+    if not series:
+        return pd.Series(dtype="string")
+    result = text_values(series[0])
+    for current in series[1:]:
+        result = result.str.cat(text_values(current), sep=sep, na_rep="")
+    return result.fillna("")
 
 
 def apply_visual_system() -> None:
@@ -79,9 +109,9 @@ def match_confidence(row: pd.Series, query: str) -> str:
     q = query.strip().casefold()
     if not q:
         return "—"
-    cn = str(row.get("CategoryCN", "")).casefold()
-    local = str(row.get("CategoryLocal", "")).casefold()
-    keyword = str(row.get("TopKeyword", "")).casefold()
+    cn = scalar_text(row.get("CategoryCN", "")).casefold()
+    local = scalar_text(row.get("CategoryLocal", "")).casefold()
+    keyword = scalar_text(row.get("TopKeyword", "")).casefold()
     if q == cn or q == local or cn.startswith(q) or local.startswith(q):
         return "高"
     if q in cn or q in local:
