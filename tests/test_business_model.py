@@ -22,6 +22,9 @@ class BusinessModelTests(unittest.TestCase):
             ("蛋白棒", "Protein Bars", "food-beverage"),
             ("胶原蛋白", "Kollagen", "health"),
             ("烟雾探测器", "Smoke Detectors", "diy"),
+            ("塔扇", "Tower Fans", "home"),
+            ("全自动咖啡机", "Kaffeevollautomaten", "kitchen"),
+            ("监控摄像头", "Überwachungskameras", "hi"),
         ]
         count = len(categories)
         return pd.DataFrame(
@@ -69,10 +72,17 @@ class BusinessModelTests(unittest.TestCase):
 
     def test_target_and_conditional_categories(self) -> None:
         scored = self.scored().set_index("Category")
-        self.assertEqual(scored.loc["充电宝", "EntryClass"], "B")
-        self.assertEqual(scored.loc["日伞", "EntryClass"], "A")
-        self.assertEqual(scored.loc["男士电动剃须刀", "EntryClass"], "B")
-        self.assertEqual(scored.loc["烟雾探测器", "EntryClass"], "B")
+        expected = {
+            "充电宝": "B",
+            "日伞": "A",
+            "男士电动剃须刀": "B",
+            "烟雾探测器": "B",
+            "塔扇": "B",
+            "全自动咖啡机": "B",
+            "监控摄像头": "B",
+        }
+        for category, entry_class in expected.items():
+            self.assertEqual(scored.loc[category, "EntryClass"], entry_class, category)
         self.assertTrue(bool(scored.loc["日伞", "DefaultBusinessEligible"]))
         self.assertGreater(float(scored.loc["充电宝", "CompanyFitScore"]), 75)
         self.assertGreater(float(scored.loc["男士电动剃须刀", "CompanyFitScore"]), 75)
