@@ -19,7 +19,15 @@ class V32DecisionModelTests(unittest.TestCase):
             ("啤酒", "Beer", "food-beverage"),
             ("大豆蛋白粉", "Soy Protein Powder", "food-beverage"),
             ("宠物跳蚤药水", "Flea & Tick Treatment", "pet-supplies"),
+            ("礼品卡", "Gift Cards", "gift-cards"),
+            ("电解质替代", "Electrolyte Replacements", "health"),
+            ("干猫粮", "Dry Cat Food", "pet-supplies"),
+            ("乳酸菌", "Lactobacillus", "health"),
+            ("减肥奶昔", "Diet Shakes", "grocery"),
             ("充电宝", "Power Bank", "electronics"),
+            ("腹肌贴", "EMS Ab Belt", "sports"),
+            ("草坪肥", "Lawn Fertilizer", "garden"),
+            ("飞蛾防治", "Moth Repellents", "home"),
             ("日伞", "Parasol", "fashion"),
             ("垃圾袋", "Trash Bags", "home"),
             ("收纳箱", "Storage Boxes", "home"),
@@ -34,14 +42,14 @@ class V32DecisionModelTests(unittest.TestCase):
                 "根类目": [item[2] for item in categories],
                 "Node Path": [f"root > {item[2]} > {item[1]}" for item in categories],
                 "近12个月销量": [100000 + index * 5000 for index in range(count)],
-                "近12个月净销售额": [5000000000 - index * 200000000 for index in range(count)],
+                "近12个月净销售额": [7000000000 - index * 200000000 for index in range(count)],
                 "近12个月搜索量": [2000000 + index * 100000 for index in range(count)],
                 "近12个月点击量": [500000 + index * 20000 for index in range(count)],
                 "近12个月浏览量": [1000000 + index * 30000 for index in range(count)],
                 "平均价格": [50000 - index * 1000 for index in range(count)],
                 "ASIN数量": [200 + index * 10 for index in range(count)],
                 "最受欢迎关键词": [item[1].casefold() for item in categories],
-                "最受欢迎关键词值": [100000 - index * 3000 for index in range(count)],
+                "最受欢迎关键词值": [150000 - index * 3000 for index in range(count)],
                 "价格转化率最大值": ["100-200"] * count,
                 "4星及以上评分数量": [150] * count,
                 "3星评分数量": [20] * count,
@@ -71,12 +79,35 @@ class V32DecisionModelTests(unittest.TestCase):
 
     def test_obvious_rule_warnings_stay_out_of_default_ranking(self) -> None:
         scored = self.model().set_index("Category")
-        self.assertEqual(scored.loc["啤酒", "EntryClass"], "D")
-        self.assertEqual(scored.loc["大豆蛋白粉", "EntryClass"], "C")
-        self.assertEqual(scored.loc["宠物跳蚤药水", "EntryClass"], "D")
-        self.assertFalse(bool(scored.loc["啤酒", "DefaultBusinessEligible"]))
-        self.assertFalse(bool(scored.loc["大豆蛋白粉", "DefaultBusinessEligible"]))
+        expected = {
+            "啤酒": "D",
+            "大豆蛋白粉": "C",
+            "宠物跳蚤药水": "D",
+            "礼品卡": "D",
+            "电解质替代": "C",
+            "干猫粮": "C",
+            "乳酸菌": "C",
+            "减肥奶昔": "C",
+        }
+        for category, entry_class in expected.items():
+            self.assertEqual(scored.loc[category, "EntryClass"], entry_class, category)
+            self.assertFalse(bool(scored.loc[category, "DefaultBusinessEligible"]), category)
         self.assertIn("不等于已确认可售", scored.loc["日伞", "RuleVerificationStatus"])
+
+    def test_conditional_categories_are_not_misrepresented_as_unrestricted(self) -> None:
+        scored = self.model().set_index("Category")
+        expected = {
+            "充电宝": "B",
+            "腹肌贴": "B",
+            "草坪肥": "B",
+            "飞蛾防治": "B",
+            "男士电动剃须刀": "B",
+        }
+        for category, entry_class in expected.items():
+            self.assertEqual(scored.loc[category, "EntryClass"], entry_class, category)
+        self.assertEqual(scored.loc["日伞", "EntryClass"], "A")
+        self.assertEqual(scored.loc["垃圾袋", "EntryClass"], "A")
+        self.assertEqual(scored.loc["收纳箱", "EntryClass"], "A")
 
     def test_strategy_robustness_is_bounded_and_complete(self) -> None:
         scored = self.model()
