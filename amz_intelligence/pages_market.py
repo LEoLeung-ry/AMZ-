@@ -8,7 +8,7 @@ import plotly.express as px
 import streamlit as st
 
 from .config import FACTOR_LABELS, MARKETS
-from .ui_common import factor_long, money, compact_number
+from .ui_common import concat_text, factor_long, money, compact_number
 
 
 def render_overview(scored: pd.DataFrame) -> None:
@@ -54,7 +54,7 @@ def render_overview(scored: pd.DataFrame) -> None:
     )[list(FACTOR_LABELS)].median()
     if not market_factor.empty:
         long = factor_long(market_factor, ["MarketCode", "MarketFlag", "Market"])
-        long["站点"] = long["MarketFlag"] + " " + long["Market"]
+        long["站点"] = concat_text(long["MarketFlag"], long["Market"], sep=" ")
         fig = px.bar(
             long,
             x="FactorLabel",
