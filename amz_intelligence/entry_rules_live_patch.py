@@ -29,6 +29,24 @@ def install_live_rule_refinements() -> None:
             )
         )
 
+    if "ADULT_SEXUAL_PRODUCT" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="ADULT_SEXUAL_PRODUCT",
+                family="成人性用品/年龄限制品",
+                level="D",
+                terms=(
+                    r"sex toys?", r"adult toys?", r"male masturbators?", r"female masturbators?", r"masturbation sleeves?",
+                    r"vibrators?", r"dildos?", r"penis sleeves?", r"成人性用品", r"男士自慰用品", r"女士自慰用品",
+                    r"自慰器", r"飞机杯", r"アダルト用ホール", r"オナホール", r"バイブレーター",
+                    r"sexspielzeug", r"masturbatoren?", r"masturbationshilfen?",
+                ),
+                excludes=(r"condoms?", r"lubricants?", r"book", r"education", r"storage case", r"cleaner"),
+                reasons=("年龄限制及平台成人品政策", "广告、支付和跨境销售限制", "卫生、材料与产品责任风险"),
+                resources=("目标国年龄限制和平台政策确认", "合规材料、标签及隐私履约体系"),
+            )
+        )
+
     if "VITAMIN_WHEY_SUPPLEMENT" not in existing:
         additions.append(
             rules.BarrierRule(
@@ -37,14 +55,76 @@ def install_live_rule_refinements() -> None:
                 level="C",
                 terms=(
                     r"prenatal vitamins?", r"prenatal multivitamins?", r"multivitamins?", r"whey proteins?",
-                    r"whey isolate", r"whey concentrate", r"乳清蛋白", r"孕妇维生素", r"产前维生素", r"复合维生素",
-                    r"ホエイプロテイン", r"マルチビタミン", r"妊婦用ビタミン",
-                    r"molkenproteine?", r"molkenproteinpulver", r"multivitaminpräparate?", r"pränatale vitamine",
+                    r"whey isolate", r"whey concentrate", r"multi[- ]?component proteins?", r"protein blends?",
+                    r"creatine", r"\bkreatin\b", r"乳清蛋白", r"多组分蛋白质", r"复合蛋白", r"肌酸",
+                    r"孕妇维生素", r"产前维生素", r"复合维生素", r"ホエイプロテイン", r"マルチビタミン",
+                    r"妊婦用ビタミン", r"クレアチン", r"molkenproteine?", r"molkenproteinpulver",
+                    r"mehrkomponenten proteine", r"multivitaminpräparate?", r"pränatale vitamine",
                 ),
                 excludes=(r"shaker", r"bottle", r"storage", r"container", r"book", r"guide"),
                 reasons=("入口型营养补充产品", "成分、标签和功效宣称要求", "生产质量、保质期和批次追溯"),
                 resources=("目标国补充剂分类确认", "配方、检测和标签资料", "进口、追溯和产品责任体系"),
                 capability="supplement_compliance",
+            )
+        )
+
+    if "FOOD_SNACK_SHAKE" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="FOOD_SNACK_SHAKE",
+                family="食品/零食/饮品",
+                level="C",
+                terms=(
+                    r"chips?\s*&\s*crisps?", r"potato chips?", r"crisps?", r"snack foods?", r"soft snacks?",
+                    r"pet snacks?", r"cat soft snacks?", r"dog soft snacks?", r"\bshakes\b", r"milkshakes?",
+                    r"薯片", r"零食", r"猫用.*零食", r"狗用.*零食", r"宠物零食", r"奶昔",
+                    r"ソフトスナック", r"猫用.*スナック", r"犬用.*スナック", r"ポテトチップス", r"スナック菓子",
+                    r"shakes", r"kartoffelchips", r"knabberartikel",
+                ),
+                excludes=(
+                    r"shaker", r"mixer", r"blender", r"machine", r"maker", r"bowl", r"container", r"storage",
+                    r"toy", r"book", r"シェイカー", r"ミキサー", r"容器", r"maschine", r"gerät",
+                ),
+                reasons=("入口食品、原料与标签要求", "过敏原、保质期和批次追溯", "进口、仓储和召回责任"),
+                resources=("目标国食品/宠物食品分类确认", "合格工厂、成分和检测资料", "进口、标签、追溯及召回体系"),
+                capability="food_import",
+            )
+        )
+
+    if "PET_FEED_EXTENDED" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="PET_FEED_EXTENDED",
+                family="宠物食品/饲料",
+                level="C",
+                terms=(
+                    r"grain feed", r"seed feed", r"bird feed", r"small animal feed", r"soft cat snacks?", r"soft dog snacks?",
+                    r"谷物饲料", r"种子饲料", r"鸟粮", r"小动物饲料", r"猫用软质零食", r"狗用软质零食",
+                    r"körnerfutter", r"vogelfutter", r"kleintierfutter", r"猫用ソフトスナック", r"犬用ソフトスナック",
+                ),
+                excludes=(r"feeder", r"bowl", r"container", r"storage", r"dispenser", r"toy", r"食器", r"容器", r"futterautomat"),
+                reasons=("宠物食品/饲料进口和标签要求", "动物源或植物源原料及检疫风险", "保质期、批次和召回责任"),
+                resources=("目标国宠物食品/饲料分类确认", "成分、检测及原产地资料", "进口、追溯和召回体系"),
+                capability="food_import",
+            )
+        )
+
+    if "EYE_SKIN_REMEDY" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="EYE_SKIN_REMEDY",
+                family="眼用/外用治疗产品",
+                level="C",
+                terms=(
+                    r"eye drops?", r"ophthalmic drops?", r"lubricating eye drops?", r"moisturizing eye drops?",
+                    r"itch remedies?", r"anti[- ]?itch remedies?", r"itch relief treatments?", r"眼药水", r"滴眼液",
+                    r"保湿眼药水", r"止痒药", r"止痒治疗", r"目薬", r"点眼薬", r"かゆみ止め",
+                    r"augentropfen", r"juckreizmittel", r"juckreizlinderung",
+                ),
+                excludes=(r"bottle", r"case", r"holder", r"storage", r"eyewash cup", r"容器", r"ケース"),
+                reasons=("眼用或治疗类产品可能属于药品、医疗器械或准药品", "无菌、成分和功效宣称要求", "高产品责任和不良反应风险"),
+                resources=("目标国产品分类与批准路径确认", "无菌/配方、检测和标签资料", "持证主体、追溯和不良事件处理体系"),
+                capability="human_medicine",
             )
         )
 
@@ -68,6 +148,24 @@ def install_live_rule_refinements() -> None:
                 ),
                 reasons=("电气安全、EMC、能效或无线电要求", "体积、售后和召回责任", "目的国插头、电压及安装适配"),
                 resources=("目的国测试与认证", "稳定整机和关键零部件供应链", "售后、产品责任保险和召回预案"),
+                capability="electrical_compliance",
+            )
+        )
+
+    if "GAMING_HARDWARE" not in existing:
+        additions.append(
+            rules.BarrierRule(
+                code="GAMING_HARDWARE",
+                family="游戏主机/电子控制器",
+                level="B",
+                terms=(
+                    r"game consoles?", r"gaming consoles?", r"video game controllers?", r"gaming controllers?",
+                    r"handheld consoles?", r"控制台", r"游戏主机", r"游戏控制器", r"手柄",
+                    r"ゲーム機", r"ゲームコントローラー", r"spielkonsolen?", r"gamecontroller",
+                ),
+                excludes=(r"console table", r"car console", r"center console", r"furniture", r"机柜", r"家具", r"autokonsole"),
+                reasons=("电气、无线电和电池合规", "品牌兼容、授权和知识产权风险", "售后、固件及产品责任"),
+                resources=("目标国电气/无线电测试", "兼容性和知识产权核验", "售后、固件和召回能力"),
                 capability="electrical_compliance",
             )
         )
